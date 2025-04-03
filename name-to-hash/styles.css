@@ -1,22 +1,41 @@
+html,
+body,
+#root {
+  overflow-x: hidden;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+}
+
+body {
+  min-height: 100vh;
+
+  line-height: 1;
+}
+
 body {
   font-family: Arial, sans-serif;
-}
-.mt-200 {
-  margin-top: 200px;
-}
-
-#result,
-#missing-cards {
-  word-wrap: break-word;
-  overflow-wrap: anywhere;
-  white-space: normal;
-  transition: background-color 0.3s ease-in-out;
+  margin: 20px;
+  display: grid;
+  place-items: center;
 }
 
-.copy-btn {
-  transition: opacity 0.3s ease-in-out;
+.textual-decoded-deck {
+  min-height: 50px;
+  padding-right: 50px;
 }
-
-.copied {
-  background-color: rgba(34, 197, 94, 0.2);
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  background-color: transparent !important;
+  -webkit-box-shadow: 0 0 0px 1000px #374151 inset !important; /* Задайте цвет фона */
+  -webkit-text-fill-color: white !important;
+  color: white !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+.main-content {
+  max-width: 52rem;
 }

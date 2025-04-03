@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Spellstone Card Converter</title>
+    <title>Deck Combinations Generator</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css"
@@ -15,62 +15,106 @@
     ></script>
   </head>
   <body
-    class="bg-gray-900 text-white flex items-center justify-center min-h-screen"
+    class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen"
   >
-    <div class="w-full max-w-2xl p-6 bg-gray-800 rounded-lg shadow-lg mt-200">
-      <form id="card-form" class="flex flex-col space-y-4">
-        <input
-          type="text"
-          id="card-input"
-          placeholder="Enter deck, e.g. Elyse: Korg|10|Hp, {etc}"
-          class="p-3 text-lg rounded-lg bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
-        />
-        <div class="flex gap-2">
+    <div
+      class="w-full max-w-3xl pt-2 px-6 pb-6 bg-gray-800 rounded-lg shadow-lg main-content"
+    >
+      <div class="inline-flex items-center justify-center w-full">
+        <hr class="w-64 h-px my-8 border-0 bg-gray-500" />
+        <span
+          class="absolute px-3 font-bold uppercase tracking-wide -translate-x-1/2 left-1/2 text-white bg-gray-800"
+          >Deck Combinations Generator</span
+        >
+      </div>
+
+      <h2 class="text-lg font-semibold mb-2">Your partial deck hash</h2>
+
+      <div class="flex items-center mb-3">
+        <div class="relative w-full">
+          <input
+            id="partialInput"
+            type="text"
+            aria-describedby="helper-text-explanation"
+            class="rounded-lg border border-e-0 text-gray-400 text-sm focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            value=""
+            placeholder="Enter partial deck hash..."
+          />
+        </div>
+      </div>
+
+      <h2 class="text-lg font-semibold mb-2">Your card pool hash</h2>
+
+      <div class="flex items-center mb-3">
+        <div class="relative w-full">
+          <input
+            id="poolInput"
+            type="text"
+            aria-describedby="helper-text-explanation"
+            class="rounded-lg border border-e-0 text-gray-400 text-sm focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            value=""
+            placeholder="Enter card pool hash..."
+          />
+        </div>
+      </div>
+
+      <h2 class="text-lg font-semibold mb-2">Number of cards to add</h2>
+
+      <div class="flex items-center mb-3">
+        <div class="relative w-full">
+          <input
+            id="numberInput"
+            type="number"
+            aria-describedby="helper-text-explanation"
+            class="rounded-lg border border-e-0 text-gray-400 text-sm focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            value=""
+            placeholder="How many cards to add"
+          />
+        </div>
+      </div>
+
+      <h2 class="text-lg font-semibold mb-2">Results</h2>
+
+      <div
+        class="w-full mb-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600"
+      >
+        <div class="px-4 py-2 bg-white rounded-t-lg dark:bg-gray-800">
+          <textarea
+            id="resultsInput"
+            rows="4"
+            class="w-full px-0 text-xs text-gray-900 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-gray-400 dark:placeholder-gray-400"
+            placeholder="Paste JSON here..."
+            required
+          ></textarea>
+        </div>
+        <div
+          class="flex items-center justify-between px-3 py-2 border-t dark:border-gray-600 border-gray-200"
+        >
           <button
             type="button"
-            id="clear-button"
-            class="w-10 h-10 flex items-center justify-center bg-red-500 text-white rounded-md"
+            id="clearButton"
+            class="py-2.5 px-4 text-sm flex items-center justify-center bg-blue-900 text-white rounded-lg hover:bg-blue-800"
           >
-            ✖
+            Clear All Fields
           </button>
           <button
-            type="submit"
-            class="bg-blue-500 text-white px-4 py-2 rounded-md grow"
+            class="inline-flex items-center py-2.5 px-4 text-xs font-medium text-center text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 hover:bg-blue-800"
+            id="runButton"
           >
-            Convert
+            Calculate Variations
           </button>
-        </div>
-      </form>
-
-      <div class="mt-10 space-y-3">
-        <div class="text-xl font-semibold mb-2">Hash</div>
-        <div
-          class="relative p-3 pl-10 text-lg bg-gray-700 rounded-lg whitespace-normal break-words"
-        >
-          <button
-            id="copy-result"
-            class="absolute left-0 px-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200"
-          >
-            📋
-          </button>
-          <span id="result"></span>
-        </div>
-
-        <div class="text-xl font-semibold mb-2">Unrecognized</div>
-        <div
-          class="relative p-3 pl-10 text-lg bg-gray-700 rounded-lg whitespace-normal break-words"
-        >
-          <button
-            id="copy-missing"
-            class="absolute left-0 px-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200"
-          >
-            📋
-          </button>
-          <span id="missing-cards"></span>
         </div>
       </div>
     </div>
-    <script src="cardsDB.js"></script>
-    <script src="formHandler.js"></script>
+    <!-- end content -->
+    <div class="text-center mt-3 text-sm text-gray-500">
+      v 0.2 Deck extractor © Dess 2025.
+
+      <a href="https://github.com/TheSench/SIMSpellstone" target="_blank"
+        >Based on SIMSpellstone</a
+      >.
+      <a href="./mit.html">MIT License</a>
+    </div>
+    <script src="dataInitializer.js"></script>
   </body>
 </html>
