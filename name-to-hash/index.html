@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spellstone Card Converter</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script
+      defer
+      src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"
+    ></script>
+  </head>
+  <body
+    class="bg-gray-900 text-white flex items-center justify-center min-h-screen"
+  >
+    <div class="w-full max-w-2xl p-6 bg-gray-800 rounded-lg shadow-lg mt-200">
+      <form id="card-form" class="flex flex-col space-y-4">
+        <input
+          type="text"
+          id="card-input"
+          placeholder="Enter deck, e.g. Elyse: Korg|10|Hp, {etc}"
+          class="p-3 text-lg rounded-lg bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
+        />
+        <div class="flex gap-2">
+          <button
+            type="button"
+            id="clear-button"
+            class="w-10 h-10 flex items-center justify-center bg-red-500 text-white rounded-md"
+          >
+            ✖
+          </button>
+          <button
+            type="submit"
+            class="bg-blue-500 text-white px-4 py-2 rounded-md grow"
+          >
+            Convert
+          </button>
+        </div>
+      </form>
+
+      <div class="mt-10 space-y-3">
+        <div class="text-xl font-semibold mb-2">Hash</div>
+        <div
+          class="relative p-3 pl-10 text-lg bg-gray-700 rounded-lg whitespace-normal break-words"
+        >
+          <button
+            id="copy-result"
+            class="absolute left-0 px-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200"
+          >
+            📋
+          </button>
+          <span id="result"></span>
+        </div>
+
+        <div class="text-xl font-semibold mb-2">Unrecognized</div>
+        <div
+          class="relative p-3 pl-10 text-lg bg-gray-700 rounded-lg whitespace-normal break-words"
+        >
+          <button
+            id="copy-missing"
+            class="absolute left-0 px-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200"
+          >
+            📋
+          </button>
+          <span id="missing-cards"></span>
+        </div>
+      </div>
+    </div>
+    <script src="cardsDB.js"></script>
+    <script src="formHandler.js"></script>
+  </body>
+</html>
