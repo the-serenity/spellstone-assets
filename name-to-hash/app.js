@@ -1102,7 +1102,10 @@ const runButtonHTML = document.getElementById('runButton');
 
 runButtonHTML.addEventListener('click', function () {
   const partialDeck = partialInputHTML.value.trim();
-  const inventory = poolInputHTML.value.trim();
+  let inventory = poolInputHTML.value.trim();
+  if (inventory.startsWith('QpLQA')) {
+    inventory = inventory.slice(5);
+  }
   const addAmount = Number(numberInputHTML.value.trim());
 
   if (!partialDeck || !inventory || !addAmount) {
