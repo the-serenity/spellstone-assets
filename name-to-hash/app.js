@@ -44,7 +44,7 @@ var CardPrototype,
         timeout ||
           (func.apply(context, args),
           (timeout = setTimeout(function () {
-            (timeout = null), func.apply(context, args);
+            ((timeout = null), func.apply(context, args));
           }, wait)));
       };
     }),
@@ -72,7 +72,7 @@ function makeUnitInfo(id, level, runes) {
     level: Number(level),
     runes: [],
   };
-  return runes && (unit.runes = runes), unit;
+  return (runes && (unit.runes = runes), unit);
 }
 
 const elariaCaptain = makeUnitInfo(202, 1);
@@ -93,14 +93,14 @@ function getCardName(unitId) {
 function decimal_to_base64(dec, len) {
   for (var base64 = '', i = 0; i < len; i++) {
     var part = dec % 64;
-    (base64 += base64chars[part]), (dec = (dec - part) / 64);
+    ((base64 += base64chars[part]), (dec = (dec - part) / 64));
   }
   return base64;
 }
 
 function base64_to_decimal(base64) {
   for (var dec = 0, i = base64.length - 1; 0 <= i; i--) {
-    (dec *= 64), (dec += base64chars.indexOf(base64[i]));
+    ((dec *= 64), (dec += base64chars.indexOf(base64[i])));
   }
   return dec;
 }
@@ -114,7 +114,7 @@ function runeID_to_decimal(runeID) {
 
 function base64_to_runeID(base64) {
   return decimal_to_runeID(
-    base64chars.indexOf(base64[0]) + 64 * base64chars.indexOf(base64[1])
+    base64chars.indexOf(base64[0]) + 64 * base64chars.indexOf(base64[1]),
   );
 }
 
@@ -183,7 +183,7 @@ function unitInfo_to_base64(unit_info) {
   var dec = baseID;
   return decimal_to_base64(
     (dec = (dec = 7 * (dec = 3 * dec + fusion) + level) * maxRuneID + runeID),
-    5
+    5,
   );
 }
 
@@ -214,15 +214,15 @@ function hash_encode(deck) {
 
   for (let k in (deck.commander &&
     current_hash.push(
-      unitInfo_to_base64(unitInfo_format_to_sim(deck.commander))
+      unitInfo_to_base64(unitInfo_format_to_sim(deck.commander)),
     ),
   deck.deck)) {
-    (current_card = deck.deck[k])?.priority && (has_priorities = !0),
+    ((current_card = deck.deck[k])?.priority && (has_priorities = !0),
       current_card?.index &&
         (indexes.push(numberToBase64(current_card.index)), (has_indexes = !0)),
       current_hash.push(
-        unitInfo_to_base64(unitInfo_format_to_sim(current_card))
-      );
+        unitInfo_to_base64(unitInfo_format_to_sim(current_card)),
+      ));
   }
 
   if (has_priorities) {
@@ -255,7 +255,7 @@ function hash_decode(hash) {
     (hash = hash.substr(0, hash.indexOf(indexDelimiter))));
   for (var unitidx = 0, i = 0; i < hash.length; i += 5) {
     var unitHash = hash.substr(i, 5);
-    (unitInfo = base64_to_unitInfo(unitHash)),
+    ((unitInfo = base64_to_unitInfo(unitHash)),
       0 < unitidx &&
         indexes &&
         (unitInfo.index = base64ToNumber(indexes[unitidx - 1])),
@@ -266,8 +266,8 @@ function hash_decode(hash) {
               : current_deck.deck.push(unitInfo),
             unitidx++)
           : console.log(
-              "Could not decode '" + unitHash + "' (" + unitInfo.id + ')'
-            ));
+              "Could not decode '" + unitHash + "' (" + unitInfo.id + ')',
+            )));
   }
   return (
     current_deck.commander || (current_deck.commander = elariaCaptain),
@@ -337,7 +337,7 @@ const applyRunesToStats = (card, runes) => {
           ? boost
           : Math.max(
               Math.ceil(modifiedCard[key] * (boost.mult || 1)),
-              boost.min_bonus || 1
+              boost.min_bonus || 1,
             );
 
       modifiedCard[key] = (modifiedCard[key] || 0) + parseInt(bonusValue);
@@ -419,7 +419,7 @@ function addRunes(card, runes) {
         (isNaN(boost) &&
           (boost = Math.max(
             Math.ceil(card[key] * boost.mult),
-            boost.min_bonus || 1
+            boost.min_bonus || 1,
           )),
         (card[key] += parseInt(boost)));
     }
@@ -441,14 +441,14 @@ function addRunesToSkills(skills, runes, runeMult) {
           ) {
             var skill = skills[s];
             if (skill.id == skillID && (skill.all || 0) == (boost.all || 0)) {
-              (skill = copy_skill(skill)),
+              ((skill = copy_skill(skill)),
                 !amount && mult && (amount = Math.ceil(skill.x * mult)),
                 boost.min_bonus && (amount = Math.max(amount, boost.min_bonus)),
                 amount && (skill.x += parseInt(amount) * runeMult),
                 boost.c &&
                   (skill.c -= Math.min(skill.c, parseInt(boost.c) * runeMult)),
                 (skill.boosted = !0),
-                (skills[s] = skill);
+                (skills[s] = skill));
               break;
             }
           }
@@ -507,17 +507,17 @@ function sortDeck(deck) {
     var compare,
       cardA = getCardByID(unitA),
       cardB = getCardByID(unitB);
+
     return (compare = cardA.rarity - cardB.rarity)
       ? compare
       : (compare = cardA.type - cardB.type)
-      ? compare
-      : (compare = compareByID(unitA, unitB))
-      ? compare
-      : (compare = unitA.level - unitB.level)
-      ? compare
-      : (compare =
-          (unitA.runes.length ? unitA.runes[0].id : 0) -
-          (unitB.runes.length ? unitB.runes[0].id : 0));
+        ? compare
+        : (compare = compareByID(unitA, unitB, true))
+          ? compare
+          : (compare = unitA.level - unitB.level)
+            ? compare
+            : (unitA.runes.length ? unitA.runes[0].id : 0) -
+              (unitB.runes.length ? unitB.runes[0].id : 0);
   });
 }
 
@@ -531,9 +531,9 @@ function getCardByID(unit, skillModifiers, skillMult, isToken) {
       unit.runes,
       skillModifiers,
       skillMult,
-      isToken
+      isToken,
     );
-    return unit.priority && (card.priority = unit.priority), card;
+    return (unit.priority && (card.priority = unit.priority), card);
   }
   return (
     console.log(unit.id + ' not found'),
@@ -546,17 +546,21 @@ function getCardByID(unit, skillModifiers, skillMult, isToken) {
   );
 }
 
-var compareByID = function (unitA, unitB) {
+var compareByID = function (unitA, unitB, compareFusion) {
   var comparison,
     unitIDA = unitA.id,
     unitIDB = unitB.id;
-  return 0 != (comparison = (unitIDA % 1e4) - (unitIDB % 1e4))
+
+  return 0 !=
+    (comparison =
+      (compareFusion ? unitIDA : unitIDA % 10000) -
+      (compareFusion ? unitIDB : unitIDB % 10000))
     ? comparison
     : 0 != (comparison = unitIDA - unitIDB)
-    ? comparison
-    : 0 != (comparison = unitA.level - unitB.level)
-    ? comparison
-    : sortByRunes(unitA, unitB);
+      ? comparison
+      : 0 != (comparison = unitA.level - unitB.level)
+        ? comparison
+        : sortByRunes(unitA, unitB);
 };
 
 function applyDefaultStatuses(card) {
@@ -630,7 +634,7 @@ var makeUnit = (function () {
         skillID = skill.id;
       switch (SKILL_DATA[skillID].type) {
         case 'toggle':
-          return (this[skillID] = !0), void (this.imbued[skillID] = 1);
+          return ((this[skillID] = !0), void (this.imbued[skillID] = 1));
         case 'passive':
           return (
             (this[skillID] += parseInt(skill.x)),
@@ -655,8 +659,8 @@ var makeUnit = (function () {
       }
       if (void 0 === imbued[imbueSkillsKey]) {
         var original = this[imbueSkillsKey];
-        (imbued[imbueSkillsKey] = original.length),
-          (this[imbueSkillsKey] = original.slice());
+        ((imbued[imbueSkillsKey] = original.length),
+          (this[imbueSkillsKey] = original.slice()));
       }
       this[imbueSkillsKey].push(skill);
     },
@@ -750,8 +754,8 @@ var makeUnit = (function () {
         return this.type == faction
           ? 1
           : 0 <= this.sub_type.indexOf(faction.toString())
-          ? 1
-          : 0;
+            ? 1
+            : 0;
       for (var i = 0; i < factions.length; i++)
         if (!this.isInFaction(factions[i])) return 0;
       return 1;
@@ -784,11 +788,11 @@ var makeUnit = (function () {
       runes,
       skillModifiers,
       skillMult,
-      isToken
+      isToken,
     ) {
       unit_level = unit_level || 1;
       var card = Object.create(CardPrototype);
-      (card.id = original_card.id),
+      ((card.id = original_card.id),
         (card.name = original_card.name),
         (card.attack = original_card.attack),
         (card.health = original_card.health),
@@ -799,7 +803,7 @@ var makeUnit = (function () {
         (card.card_type = original_card.card_type),
         (card.type = original_card.type),
         (card.sub_type = original_card.sub_type || []),
-        (card.set = original_card.set);
+        (card.set = original_card.set));
       var upgrade,
         original_skills = original_card.skill;
       if (1 < card.level)
@@ -843,7 +847,7 @@ var makeUnit = (function () {
       ) {
         card.addRunes(runes);
         var runeMult = 1;
-        skillModifiers &&
+        (skillModifiers &&
           skillModifiers.forEach(function (skillModifier) {
             'runeMultiplier' === skillModifier.modifierType &&
               skillModifier.effects.forEach(function (effect) {
@@ -851,7 +855,7 @@ var makeUnit = (function () {
                   (runeMult = parseInt(effect.mult));
               });
           }),
-          addRunesToSkills(original_skills, runes, runeMult);
+          addRunesToSkills(original_skills, runes, runeMult));
       } else card.runes = [];
       return (
         skillModifiers &&
@@ -892,10 +896,10 @@ var makeUnit = (function () {
                       if (addedSkill.base) {
                         var base = getStatBeforeRunes(
                           new_card,
-                          addedSkill.base
+                          addedSkill.base,
                         );
-                        (base = isToken ? new_card[addedSkill.base] : base),
-                          (new_skill.x += Math.ceil(addedSkill.mult * base));
+                        ((base = isToken ? new_card[addedSkill.base] : base),
+                          (new_skill.x += Math.ceil(addedSkill.mult * base)));
                       } else new_skill.mult = addedSkill.mult;
                     if (
                       ((new_skill.z = addedSkill.z),
@@ -908,8 +912,8 @@ var makeUnit = (function () {
                       addedSkill.mult && addedSkill.base && 0 == new_skill.x)
                     )
                       continue;
-                    original_skills.push(new_skill),
-                      new_card.highlighted.push(new_skill.id);
+                    (original_skills.push(new_skill),
+                      new_card.highlighted.push(new_skill.id));
                   }
                 }
               else if (
@@ -921,11 +925,11 @@ var makeUnit = (function () {
                     scaling = skillModifier.effects[j];
                     new_card.isInFaction(scaling.y) &&
                       new_card.isTargetRarity(
-                        scaling.rarity && new_card.isTargetDelay(scaling.delay)
+                        scaling.rarity && new_card.isTargetDelay(scaling.delay),
                       ) &&
                       ((new_card[skillModifier.scaledStat] += Math.ceil(
                         getStatBeforeRunes(new_card, scaling.base) *
-                          scaling.mult
+                          scaling.mult,
                       )),
                       new_card.highlighted.push(skillModifier.scaledStat));
                   }
@@ -939,12 +943,12 @@ var makeUnit = (function () {
                   ) {
                     var mult = scaling.mult,
                       plusAttack = Math.ceil(new_card.attack * mult);
-                    (new_card.attack += plusAttack),
-                      new_card.highlighted.push('attack');
+                    ((new_card.attack += plusAttack),
+                      new_card.highlighted.push('attack'));
                     var plusHealth = Math.ceil(new_card.health * mult);
-                    (new_card.health += plusHealth),
+                    ((new_card.health += plusHealth),
                       new_card.highlighted.push('health'),
-                      scaleSkills(new_card, original_skills, mult);
+                      scaleSkills(new_card, original_skills, mult));
                   }
                 }
             }
@@ -958,9 +962,9 @@ var makeUnit = (function () {
 })();
 
 function copySkills(new_card, original_skills, mult) {
-  (new_card.skill = []),
+  ((new_card.skill = []),
     (new_card.earlyActivationSkills = []),
-    (new_card.onDeathSkills = []);
+    (new_card.onDeathSkills = []));
   var skillTimers = [],
     reusable = !0;
   for (var key in original_skills) {
@@ -973,7 +977,7 @@ function copySkills(new_card, original_skills, mult) {
       : (mult && (copySkill.x = Math.ceil(copySkill.x * mult)),
         setSkill(new_card, copySkill));
   }
-  (new_card.reusableSkills = reusable), (new_card.skillTimers = skillTimers);
+  ((new_card.reusableSkills = reusable), (new_card.skillTimers = skillTimers));
 }
 
 function setSkill(new_card, skill) {
@@ -1004,8 +1008,8 @@ function sortByRunes(unitA, unitB) {
   return 0 != comparison
     ? comparison
     : unitA.runes.length
-    ? unitA.runes[0].id - unitB.runes[0].id
-    : 0;
+      ? unitA.runes[0].id - unitB.runes[0].id
+      : 0;
 }
 
 function copy_skill(original_skill) {
@@ -1060,8 +1064,8 @@ function generateDeckVariations(partialDeckHash, cardPool, cardsToAdd) {
   if (estimatedCombinations > 2000) {
     console.log(
       `Error: Too many varations — (≈${estimatedCombinations.toFixed(
-        0
-      )}), the script has been stopped.`
+        0,
+      )}), the script has been stopped.`,
     );
     return [];
   }
@@ -1080,11 +1084,11 @@ function generateDeckVariations(partialDeckHash, cardPool, cardsToAdd) {
 
   const combinations = getCombinations(substrings, cardsToAdd);
   const uniqueCombinations = new Set(
-    combinations.map((combo) => combo.sort().join(''))
+    combinations.map((combo) => combo.join('')),
   );
 
   const result = [...uniqueCombinations].map((combo) =>
-    sortHash(partialDeckHash + combo)
+    sortHash(partialDeckHash + combo),
   );
 
   //console.log(result.join('\n'));
