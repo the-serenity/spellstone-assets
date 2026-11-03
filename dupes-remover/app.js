@@ -1027,85 +1027,83 @@ function combinationCount(n, k) {
 function removeDupes(deckHash, candidatesHash) {
   const decodedDeck = hash_decode(deckHash);
 
-  // Cards count
+  // Count cards in deck by ID
   const deckCount = {};
 
   decodedDeck.deck.forEach((card) => {
     deckCount[card.id] = (deckCount[card.id] || 0) + 1;
   });
 
+  // Split candidates hash into 5-character card hashes
   const candidateHashes = candidatesHash.match(/.{1,5}/g) || [];
 
-  let remaining = [];
+  const remaining = [];
 
-  let idCount = {};
-  let removedCount = {};
-
-  for (let hash of candidateHashes) {
+  for (const hash of candidateHashes) {
     const unit = base64_to_unitInfo(hash);
     const id = unit.id;
 
     if (deckCount[id] && deckCount[id] > 0) {
-      removedCount[id] = (removedCount[id] || 0) + 1;
       deckCount[id]--;
     } else {
       remaining.push(hash);
-      idCount[id] = (idCount[id] || 0) + 1;
     }
   }
 
-  let message = '';
-
-  // ---------- Removed cards ----------
-  const removedEntries = Object.entries(removedCount);
-
-  if (removedEntries.length) {
-    message += 'Removed cards:\n';
-
-    removedEntries.forEach(([id, count]) => {
-      const card = loadCard(id);
-
-      if (card) {
-        message += `${card.name} ×${count}\n`;
-      }
-    });
-
-    message += '\n';
-  }
-
-  // ---------- Repeated cards left ----------
-  const duplicates = Object.entries(idCount).filter(([id, count]) => count > 1);
-
-  if (duplicates.length) {
-    message += 'Repeated cards left:\n';
-
-    duplicates.forEach(([id, count]) => {
-      const card = loadCard(id);
-
-      if (card) {
-        message += `${card.name} ×${count - 1}\n`;
-      }
-    });
-  }
-
-  if (!message) {
-    message = 'No duplicates found.';
-  }
-
-  return {
-    hash: remaining.join(''),
-    message,
-  };
+  return remaining.join('');
 }
 
-function generateDeckVariations(deckHash, candidatesHash) {
-  const result = removeDupes(deckHash, candidatesHash);
+// Split batch input into individual hashes
+function parseBatchLines(input, fieldName) {
+  const lines = input.split(/\r\n|\n|\r/).map((line) => line.trim());
 
-  poolInputHTML.value = result.hash;
+  // Ignore empty lines at the beginning and end
+  while (lines.length && !lines[0]) {
+    lines.shift();
+  }
 
-  return result.message || 'Done.';
+  while (lines.length && !lines[lines.length - 1]) {
+    lines.pop();
+  }
+
+  if (!lines.length) {
+    throw new Error(`${fieldName}: no data provided.`);
+  }
+
+  // Empty lines inside the batch are not allowed
+  if (lines.some((line) => !line)) {
+    throw new Error(`${fieldName}: empty line found inside the batch.`);
+  }
+
+  if (lines.length > 50) {
+    throw new Error(`${fieldName}: maximum 50 entries allowed.`);
+  }
+
+  return lines;
 }
 
+// Process multiple players
+function generateBatchResults(decksInput, candidatesInput) {
+  const decks = parseBatchLines(decksInput, 'Deck hash');
+  const candidates = parseBatchLines(candidatesInput, 'Candidates');
+
+  if (decks.length !== candidates.length) {
+    throw new Error(
+      `Different number of entries: ${decks.length} decks and ${candidates.length} candidates.`,
+    );
+  }
+
+  const results = [];
+
+  for (let i = 0; i < decks.length; i++) {
+    const result = removeDupes(decks[i], candidates[i]);
+    results.push(result);
+  }
+
+  return results.join('\n');
+}
+
+// DOM elements
 const partialInputHTML = document.getElementById('partialInput');
 const poolInputHTML = document.getElementById('poolInput');
 const resultsInput = document.getElementById('resultsInput');
@@ -1114,31 +1112,35 @@ const clearButtonHTML = document.getElementById('clearButton');
 const copyHashBtnHTML = document.getElementById('copyCandidates');
 const runButtonHTML = document.getElementById('runButton');
 
+// Remove duplicates from batch
 runButtonHTML.addEventListener('click', function () {
-  const deckHash = partialInputHTML.value.trim();
-  const candidates = poolInputHTML.value.trim();
+  const decksInput = partialInputHTML.value;
+  const candidatesInput = poolInputHTML.value;
 
-  if (!deckHash || !candidates) {
-    resultsInput.textContent = 'Please enter deck hash and candidates';
+  resultsInput.value = '';
 
+  if (!decksInput.trim() || !candidatesInput.trim()) {
+    resultsInput.value = 'Please enter deck hashes and candidates.';
     return;
   }
 
   try {
-    const message = generateDeckVariations(deckHash, candidates);
-
-    resultsInput.textContent = message;
+    resultsInput.value = generateBatchResults(decksInput, candidatesInput);
   } catch (error) {
-    resultsInput.textContent = 'Error: ' + error.message;
+    resultsInput.value = 'Error: ' + error.message;
   }
 });
 
+// Clear all fields
 clearButtonHTML.addEventListener('click', () => {
   partialInputHTML.value = '';
   poolInputHTML.value = '';
-  resultsInput.textContent = '';
+  resultsInput.value = '';
 });
 
+// Copy results
 copyHashBtnHTML.addEventListener('click', () => {
-  copyToClipboard(poolInputHTML.value);
+  if (resultsInput.value) {
+    copyToClipboard(resultsInput.value);
+  }
 });
