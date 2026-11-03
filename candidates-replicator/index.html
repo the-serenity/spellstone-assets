@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en" data-theme="dark" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dupe Cleaner Batch</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+    <script
+      defer
+      src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+  </head>
+  <body
+    class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen">
+    <div
+      class="w-full max-w-3xl pt-2 px-6 pb-6 bg-gray-800 rounded-lg shadow-lg main-content">
+      <div class="inline-flex items-center justify-center w-full">
+        <hr class="w-64 h-px my-8 border-0 bg-gray-500" />
+        <span
+          class="absolute px-3 font-bold uppercase tracking-wide -translate-x-1/2 left-1/2 text-white bg-gray-800">
+          Extract cards from decks
+        </span>
+      </div>
+
+      <div class="mb-4">
+        <label
+          for="partialInput"
+          class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+          Deck hashes
+        </label>
+        <textarea
+          id="partialInput"
+          rows="8"
+          class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          placeholder="One deck hash per line..."></textarea>
+      </div>
+
+      <div class="mb-4">
+        <label
+          for="resultsInput"
+          class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+          Results
+        </label>
+        <textarea
+          id="resultsInput"
+          rows="8"
+          readonly
+          class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          placeholder="Resulting candidate hash..."></textarea>
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        <button
+          id="clearButton"
+          type="button"
+          class="py-2.5 px-4 text-sm flex items-center justify-center bg-blue-900 text-white rounded-lg hover:bg-blue-800">
+          Clear All Fields
+        </button>
+
+        <button
+          id="copyCandidates"
+          type="button"
+          class="py-2.5 px-4 text-sm flex items-center justify-center bg-blue-900 text-white rounded-lg hover:bg-blue-800">
+          Copy Results
+        </button>
+
+        <button
+          id="runButton"
+          type="button"
+          class="inline-flex items-center py-2.5 px-4 text-xs font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800">
+          Get cards
+        </button>
+      </div>
+
+      <!-- ============================================ -->
+      <!-- CANDIDATES REPLICATOR                        -->
+      <!-- ============================================ -->
+
+      <div class="mt-10 pt-6 border-t border-gray-600">
+        <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+          Candidates Replicator
+        </h2>
+
+        <div class="mb-4">
+          <label
+            for="replicateCandidatesInput"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            Candidates
+          </label>
+
+          <textarea
+            id="replicateCandidatesInput"
+            rows="5"
+            class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            placeholder="Paste candidate hash..."></textarea>
+        </div>
+
+        <div class="mb-4">
+          <label
+            for="replicateInventoryInput"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            Inventory
+          </label>
+
+          <textarea
+            id="replicateInventoryInput"
+            rows="8"
+            class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            placeholder="Paste player's inventory hash..."></textarea>
+        </div>
+
+        <div class="mb-4">
+          <label
+            for="replicateResultsInput"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            Results
+          </label>
+
+          <textarea
+            id="replicateResultsInput"
+            rows="5"
+            readonly
+            class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            placeholder="Replicated inventory cards..."></textarea>
+        </div>
+
+        <div class="mb-4">
+          <label
+            for="replicateMessages"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            Messages
+          </label>
+
+          <textarea
+            id="replicateMessages"
+            rows="8"
+            readonly
+            class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            placeholder="Replication details..."></textarea>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <button
+            id="clearReplicatorButton"
+            type="button"
+            class="py-2.5 px-4 text-sm flex items-center justify-center bg-blue-900 text-white rounded-lg hover:bg-blue-800">
+            Clear All Fields
+          </button>
+
+          <button
+            id="copyReplicatorResults"
+            type="button"
+            class="py-2.5 px-4 text-sm flex items-center justify-center bg-blue-900 text-white rounded-lg hover:bg-blue-800">
+            Copy Results
+          </button>
+
+          <button
+            id="replicateButton"
+            type="button"
+            class="inline-flex items-center py-2.5 px-4 text-xs font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800">
+            Replicate
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center mt-3 text-sm text-gray-500">
+      v 0.3 © Dess 2026.
+
+      <a href="https://github.com/TheSench/SIMSpellstone" target="_blank">
+        Based on SIMSpellstone </a
+      >.
+      <a href="./mit.html">MIT License</a>
+    </div>
+
+    <script src="dataInitializer.js"></script>
+  </body>
+</html>
