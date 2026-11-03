@@ -1214,6 +1214,7 @@ const resultsInput = document.getElementById('resultsInput');
 const clearButtonHTML = document.getElementById('clearButton');
 const copyHashBtnHTML = document.getElementById('copyCandidates');
 const runButtonHTML = document.getElementById('runButton');
+const replicateMinLevel = document.getElementById('replicateMinLevel');
 
 // Get cards
 runButtonHTML.addEventListener('click', function () {
@@ -1255,13 +1256,11 @@ function getCardName(id) {
   return CARDS[id]?.name || CARDS[id]?.card_name || `Unknown card (ID: ${id})`;
 }
 
-function replicateCandidates(candidatesHash, inventoryHash) {
-  // Decode both hashes
+function replicateCandidates(candidatesHash, inventoryHash, minLevel = 5) {
   const decodedCandidates = hash_decode(candidatesHash);
   const decodedInventory = hash_decode(inventoryHash);
 
-  // Make a copy of inventory cards.
-  // Each inventory card can only be used once.
+  // Each inventory card can only be used once
   const availableInventory = [...decodedInventory.deck];
 
   const replicatedCards = [];
@@ -1269,49 +1268,64 @@ function replicateCandidates(candidatesHash, inventoryHash) {
   const takenMessages = [];
   const skippedMessages = [];
 
-  // Process candidates in their original order
   for (const candidate of decodedCandidates.deck) {
     const candidateId = Number(candidate.id);
 
-    // Find the first available inventory card with the same ID.
-    // Level and runes are deliberately ignored.
-    const inventoryIndex = availableInventory.findIndex(
-      (inventoryCard) => Number(inventoryCard.id) === candidateId,
-    );
+    // Find all available inventory copies with the same ID
+    const matchingIndexes = [];
 
-    if (inventoryIndex !== -1) {
-      // Take the actual inventory card.
-      // Its original level and runes are preserved.
+    availableInventory.forEach((inventoryCard, index) => {
+      if (Number(inventoryCard.id) === candidateId) {
+        matchingIndexes.push(index);
+      }
+    });
+
+    // Find the first copy that meets the minimum level
+    const inventoryIndex = matchingIndexes.find((index) => {
+      return Number(availableInventory[index].level) >= minLevel;
+    });
+
+    if (inventoryIndex !== undefined) {
       const inventoryCard = availableInventory[inventoryIndex];
 
+      // Preserve the actual inventory card, including its level and runes
       replicatedCards.push(inventoryCard);
 
-      // Remove the used copy from available inventory.
+      // Consume this inventory copy
       availableInventory.splice(inventoryIndex, 1);
 
-      const cardName = getCardName(candidateId);
-
       takenMessages.push(
-        `+ ${cardName} (ID: ${candidateId}, Level: ${inventoryCard.level})`,
+        `+ ${getCardName(candidateId)} (ID: ${candidateId}, Level: ${inventoryCard.level})`,
       );
     } else {
       const cardName = getCardName(candidateId);
 
-      skippedMessages.push(
-        `- ${cardName} (ID: ${candidateId}) — not available in inventory`,
-      );
+      if (matchingIndexes.length > 0) {
+        const inventoryLevels = matchingIndexes.map((index) => {
+          return availableInventory[index].level;
+        });
+
+        skippedMessages.push(
+          `- ${cardName} (ID: ${candidateId}) — ` +
+            `level too low. Inventory levels: ${inventoryLevels.join(', ')}. ` +
+            `Required: ${minLevel}+`,
+        );
+      } else {
+        skippedMessages.push(
+          `- ${cardName} (ID: ${candidateId}) — not available in inventory`,
+        );
+      }
     }
   }
 
-  // Encode the replicated cards without a commander.
   const resultHash = hash_encode({
     deck: replicatedCards,
   });
 
-  // Build messages
   const messages = [
     `Candidates: ${decodedCandidates.deck.length}`,
     `Inventory cards: ${decodedInventory.deck.length}`,
+    `Minimum level: ${minLevel}`,
     `Successfully replicated: ${replicatedCards.length}`,
     `Skipped: ${skippedMessages.length}`,
     '',
@@ -1366,8 +1380,16 @@ replicateButton.addEventListener('click', function () {
     return;
   }
 
+  const minLevel = Number(replicateMinLevel.value);
+
+  if (!Number.isInteger(minLevel) || minLevel < 1 || minLevel > 6) {
+    replicateMessages.value =
+      'Error: Min level must be an integer between 1 and 6.';
+    return;
+  }
+
   try {
-    const result = replicateCandidates(candidatesHash, inventoryHash);
+    const result = replicateCandidates(candidatesHash, inventoryHash, minLevel);
 
     replicateResultsInput.value = result.hash;
     replicateMessages.value = result.messages;

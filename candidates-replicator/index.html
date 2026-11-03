@@ -113,6 +113,28 @@
 
         <div class="mb-4">
           <label
+            for="replicateMinLevel"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            Min level
+          </label>
+
+          <input
+            type="number"
+            id="replicateMinLevel"
+            min="1"
+            max="6"
+            step="1"
+            value="5"
+            class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Minimum card level required for replication (1–6). Cards below this
+            level will be skipped.
+          </p>
+        </div>
+
+        <div class="mb-4">
+          <label
             for="replicateResultsInput"
             class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
             Results
