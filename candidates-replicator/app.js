@@ -1,3 +1,5 @@
+const MIN_PARTIAL_CARDS = 8;
+
 var base64chars =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!~',
   runeDelimiter = '/',
@@ -1484,6 +1486,85 @@ function getDeckReplicatorMinLevel(referenceCard, uniqueMinLevel) {
   return Number(referenceCard.level);
 }
 
+function replicateDeck(
+  referenceHash,
+  inventoryCards,
+  inventoryCommanderIds,
+  uniqueMinLevel,
+  anyRune,
+) {
+  const referenceDeck = hash_decode(referenceHash);
+  const referenceCommander = getActualCommanderFromHash(referenceHash);
+
+  if (!referenceCommander) {
+    return {
+      status: 'rejected',
+      reason: 'Reference deck commander could not be identified.',
+    };
+  }
+
+  // Commander matching is based on ID only.
+  if (!inventoryCommanderIds.has(Number(referenceCommander.id))) {
+    return {
+      status: 'rejected',
+      reason: `Commander ID ${referenceCommander.id} is not available in inventory.`,
+    };
+  }
+
+  if (referenceDeck.deck.length !== 15) {
+    return {
+      status: 'rejected',
+      reason: `Reference deck must contain exactly 15 cards. Found: ${referenceDeck.deck.length}.`,
+    };
+  }
+
+  const matchResult = matchReferenceCards(
+    referenceDeck.deck,
+    inventoryCards,
+    uniqueMinLevel,
+    anyRune,
+  );
+
+  const copiedCount = matchResult.matchedCount;
+
+  // Fewer than the minimum number of cards: reject the deck.
+  if (copiedCount < MIN_PARTIAL_CARDS) {
+    return {
+      status: 'rejected',
+      copiedCount,
+      reason: `Only ${copiedCount} of 15 cards could be matched. Minimum required: ${MIN_PARTIAL_CARDS}.`,
+    };
+  }
+
+  // Use the reference commander and the actual inventory copies.
+  const resultCommander = makeUnitInfo(
+    referenceCommander.id,
+    referenceCommander.level,
+  );
+
+  const resultHash = hash_encode({
+    commander: resultCommander,
+    deck: matchResult.cards,
+  });
+
+  const sortedHash = sortHash(resultHash);
+
+  if (copiedCount === 15) {
+    return {
+      status: 'full',
+      hash: sortedHash,
+      copiedCount,
+    };
+  }
+
+  return {
+    status: 'partial',
+    hash: sortedHash,
+    copiedCount,
+    missingCount: 15 - copiedCount,
+  };
+}
+
 // Find a complete matching between reference cards and inventory cards.
 // Uses augmenting paths to avoid greedy matching failures.
 
@@ -1493,8 +1574,7 @@ function matchReferenceCards(
   uniqueMinLevel,
   anyRune,
 ) {
-  // Build eligible inventory options for every reference card.
-  const options = referenceCards.map((referenceCard, referenceIndex) => {
+  const options = referenceCards.map((referenceCard) => {
     const requiredLevel = getDeckReplicatorMinLevel(
       referenceCard,
       uniqueMinLevel,
@@ -1515,24 +1595,7 @@ function matchReferenceCards(
       .map(({ inventoryIndex }) => inventoryIndex);
   });
 
-  // If any reference card has no eligible inventory copy,
-  // the deck cannot be replicated.
-  for (let i = 0; i < options.length; i++) {
-    if (options[i].length === 0) {
-      const card = referenceCards[i];
-      const requiredLevel = getDeckReplicatorMinLevel(card, uniqueMinLevel);
-
-      return {
-        success: false,
-        reason:
-          `${CARDS[card.id]?.name || `Card ID ${card.id}`} ` +
-          `(ID: ${card.id}) has no matching inventory copy. ` +
-          `Required level: ${requiredLevel}+`,
-      };
-    }
-  }
-
-  // Process cards with the fewest available copies first.
+  // Try cards with the fewest available copies first.
   const sortedReferenceIndexes = options
     .map((_, index) => index)
     .sort((a, b) => options[a].length - options[b].length);
@@ -1562,17 +1625,10 @@ function matchReferenceCards(
     return false;
   }
 
+  // Attempt to match every reference card.
+  // Failed cards do not prevent the remaining cards from being matched.
   for (const referenceIndex of sortedReferenceIndexes) {
-    if (!tryAssign(referenceIndex, new Set())) {
-      const card = referenceCards[referenceIndex];
-
-      return {
-        success: false,
-        reason:
-          `${CARDS[card.id]?.name || `Card ID ${card.id}`} ` +
-          `(ID: ${card.id}) has no unused matching inventory copy.`,
-      };
-    }
+    tryAssign(referenceIndex, new Set());
   }
 
   // Restore the original reference deck order.
@@ -1582,74 +1638,112 @@ function matchReferenceCards(
     matchedCards[referenceIndex] = inventoryCards[inventoryIndex];
   }
 
+  const cards = matchedCards.filter(Boolean);
+  const matchedCount = cards.length;
+
+  const missingCards = referenceCards
+    .map((card, index) => ({
+      card,
+      matched: Boolean(matchedCards[index]),
+    }))
+    .filter((item) => !item.matched)
+    .map((item) => item.card);
+
   return {
-    success: true,
-    cards: matchedCards,
+    success: matchedCount === referenceCards.length,
+    cards,
+    matchedCount,
+    missingCards,
   };
 }
 
 // Replicate one complete reference deck.
-function replicateDeck(
-  referenceHash,
+function matchReferenceCards(
+  referenceCards,
   inventoryCards,
-  inventoryCommanderIds,
   uniqueMinLevel,
   anyRune,
 ) {
-  const referenceCommander = getActualCommanderFromHash(referenceHash);
+  const options = referenceCards.map((referenceCard) => {
+    const requiredLevel = getDeckReplicatorMinLevel(
+      referenceCard,
+      uniqueMinLevel,
+    );
 
-  if (!referenceCommander) {
-    return {
-      success: false,
-      reason: 'Reference deck has no valid commander.',
-    };
-  }
-
-  const decodedReference = hash_decode(referenceHash);
-
-  if (decodedReference.deck.length !== 15) {
-    return {
-      success: false,
-      reason:
-        `Reference deck must contain exactly 15 cards. ` +
-        `Found: ${decodedReference.deck.length}.`,
-    };
-  }
-
-  // Commander matching: ID only.
-  if (!inventoryCommanderIds.has(Number(referenceCommander.id))) {
-    return {
-      success: false,
-      reason: `Commander ID ${referenceCommander.id} is not available in inventory.`,
-    };
-  }
-
-  const matching = matchReferenceCards(
-    decodedReference.deck,
-    inventoryCards,
-    uniqueMinLevel,
-    anyRune,
-  );
-
-  if (!matching.success) {
-    return matching;
-  }
-
-  // Keep the reference commander.
-  // Its level and runes are irrelevant.
-  const resultCommander = makeUnitInfo(
-    referenceCommander.id,
-    referenceCommander.level,
-  );
-
-  const resultHash = hash_encode({
-    commander: resultCommander,
-    deck: matching.cards,
+    return inventoryCards
+      .map((inventoryCard, inventoryIndex) => ({
+        inventoryCard,
+        inventoryIndex,
+      }))
+      .filter(({ inventoryCard }) => {
+        return (
+          Number(inventoryCard.id) === Number(referenceCard.id) &&
+          Number(inventoryCard.level) >= requiredLevel &&
+          matchesDeckRune(referenceCard, inventoryCard, anyRune)
+        );
+      })
+      .map(({ inventoryIndex }) => inventoryIndex);
   });
 
+  // Try cards with the fewest available copies first.
+  const sortedReferenceIndexes = options
+    .map((_, index) => index)
+    .sort((a, b) => options[a].length - options[b].length);
+
+  // inventoryIndex -> referenceIndex
+  const assignedInventory = new Map();
+
+  function tryAssign(referenceIndex, visitedInventory) {
+    for (const inventoryIndex of options[referenceIndex]) {
+      if (visitedInventory.has(inventoryIndex)) {
+        continue;
+      }
+
+      visitedInventory.add(inventoryIndex);
+
+      const previousReference = assignedInventory.get(inventoryIndex);
+
+      if (
+        previousReference === undefined ||
+        tryAssign(previousReference, visitedInventory)
+      ) {
+        assignedInventory.set(inventoryIndex, referenceIndex);
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  // Attempt to match every reference card.
+  // Failed cards do not prevent the remaining cards from being matched.
+  for (const referenceIndex of sortedReferenceIndexes) {
+    tryAssign(referenceIndex, new Set());
+  }
+
+  // Restore the original reference deck order.
+  const matchedCards = new Array(referenceCards.length);
+
+  for (const [inventoryIndex, referenceIndex] of assignedInventory) {
+    matchedCards[referenceIndex] = inventoryCards[inventoryIndex];
+  }
+
+  const cards = matchedCards.filter(Boolean);
+  const matchedCount = cards.length;
+
+  const missingCards = referenceCards
+    .map((card, index) => ({
+      card,
+      matched: Boolean(matchedCards[index]),
+    }))
+    .filter((item) => !item.matched)
+    .map((item) => item.card);
+
   return {
-    success: true,
-    hash: sortHash(resultHash),
+    success: matchedCount === referenceCards.length,
+    cards,
+    matchedCount,
+    missingCards,
   };
 }
 
@@ -1685,41 +1779,44 @@ function generateDeckReplicatorResults(
 
   const decodedInventory = hash_decode(inventoryHash);
 
-  // Collect all commander IDs from the entire inventory hash.
   const inventoryCommanderIds = getInventoryCommanderIds(
     decodedInventory,
     inventoryHash,
   );
 
-  // Remove commanders from the ordinary card pool.
   const inventoryCards = decodedInventory.deck.filter(
     (card) => !is_commander(card.id),
   );
 
-  const results = [];
+  const fullResults = [];
+  const partialResults = [];
   const rejected = [];
 
   for (let i = 0; i < referenceHashes.length; i++) {
-    const referenceHash = referenceHashes[i];
-
     try {
       const result = replicateDeck(
-        referenceHash,
+        referenceHashes[i],
         inventoryCards,
         inventoryCommanderIds,
         uniqueMinLevel,
         anyRune,
       );
 
-      if (result.success) {
-        results.push(result.hash);
+      if (result.status === 'full') {
+        fullResults.push(result.hash);
+
+        console.log(`[Decks Replicator] Deck ${i + 1}: fully replicated.`);
+      } else if (result.status === 'partial') {
+        partialResults.push(result.hash);
 
         console.log(
-          `[Decks Replicator] Deck ${i + 1}: replicated successfully.`,
+          `[Decks Replicator] Deck ${i + 1}: partially replicated ` +
+            `(${result.copiedCount}/15 cards).`,
         );
       } else {
         rejected.push({
           deck: i + 1,
+          copiedCount: result.copiedCount ?? 0,
           reason: result.reason,
         });
 
@@ -1741,12 +1838,18 @@ function generateDeckReplicatorResults(
     references: referenceHashes.length,
     inventoryCards: inventoryCards.length,
     inventoryCommanders: [...inventoryCommanderIds],
-    replicated: results.length,
+    fullyReplicated: fullResults.length,
+    partiallyReplicated: partialResults.length,
     rejected: rejected.length,
     rejectedDetails: rejected,
   });
 
-  return results.join('\n');
+  return {
+    fullResults: fullResults.join('\n'),
+    partialResults: partialResults
+      .sort((a, b) => b.length - a.length)
+      .join('\n'),
+  };
 }
 
 // ============================================
@@ -1799,12 +1902,18 @@ runDeckReplicator.addEventListener('click', function () {
   }
 
   try {
-    deckReplicatorResults.value = generateDeckReplicatorResults(
-      referencesInput,
-      inventoryHash,
-      minLevel,
-      deckReplicatorAnyRune.checked,
+    const results = generateDeckReplicatorResults(
+      document.getElementById('deckReplicatorReferences').value,
+      document.getElementById('deckReplicatorInventory').value.trim(),
+      Number(document.getElementById('deckReplicatorMinLevel').value),
+      document.getElementById('deckReplicatorAnyRune').checked,
     );
+
+    document.getElementById('deckReplicatorResults').value =
+      results.fullResults;
+
+    document.getElementById('deckReplicatorPartialResults').value =
+      results.partialResults;
   } catch (error) {
     console.error('[Decks Replicator]', error);
 
@@ -1819,6 +1928,7 @@ clearDeckReplicator.addEventListener('click', () => {
   deckReplicatorMinLevel.value = '8';
   deckReplicatorAnyRune.checked = false;
   deckReplicatorResults.value = '';
+  document.getElementById('deckReplicatorPartialResults').value = '';
 });
 
 // Copy results.
