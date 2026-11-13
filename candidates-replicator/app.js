@@ -1075,9 +1075,9 @@ function parseBatchLines(input, fieldName) {
     throw new Error(`${fieldName}: empty line found inside the batch.`);
   }
 
-  if (lines.length > 50) {
-    throw new Error(`${fieldName}: maximum 50 entries allowed.`);
-  }
+  // if (lines.length > 50) {
+  //  throw new Error(`${fieldName}: maximum 50 entries allowed.`);
+  //}
 
   return lines;
 }
