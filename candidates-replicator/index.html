@@ -186,6 +186,123 @@
           </button>
         </div>
       </div>
+
+      <!-- ============================================ -->
+      <!-- DECKS REPLICATOR                             -->
+      <!-- ============================================ -->
+
+      <div class="mt-10 pt-6 border-t border-gray-600">
+        <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+          Decks Replicator
+        </h2>
+
+        <div class="mb-4">
+          <label
+            for="deckReplicatorReferences"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            Reference decks
+          </label>
+
+          <textarea
+            id="deckReplicatorReferences"
+            rows="8"
+            class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            placeholder="One reference deck hash per line..."></textarea>
+        </div>
+
+        <div class="mb-4">
+          <label
+            for="deckReplicatorInventory"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            Inventory
+          </label>
+
+          <textarea
+            id="deckReplicatorInventory"
+            rows="8"
+            class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            placeholder="Paste player's inventory hash..."></textarea>
+        </div>
+
+        <div class="mb-4">
+          <label
+            for="deckReplicatorMinLevel"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            Min card level
+          </label>
+
+          <input
+            type="number"
+            id="deckReplicatorMinLevel"
+            min="1"
+            max="10"
+            step="1"
+            value="8"
+            class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Minimum level for cards from sets 5000, 5200 and 5100. Cards from
+            other sets must be level 6 or higher.
+          </p>
+        </div>
+
+        <div class="mb-4">
+          <div class="flex items-center">
+            <input
+              id="deckReplicatorAnyRune"
+              type="checkbox"
+              class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600" />
+
+            <label
+              for="deckReplicatorAnyRune"
+              class="ml-2 text-sm font-medium text-gray-900 dark:text-white">
+              Any rune
+            </label>
+          </div>
+
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            If enabled, any rune is accepted when the reference card has a rune.
+          </p>
+        </div>
+
+        <div class="mb-4">
+          <label
+            for="deckReplicatorResults"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            Results
+          </label>
+
+          <textarea
+            id="deckReplicatorResults"
+            rows="8"
+            readonly
+            class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            placeholder="Successfully replicated deck hashes..."></textarea>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <button
+            id="clearDeckReplicator"
+            type="button"
+            class="py-2.5 px-4 text-sm flex items-center justify-center bg-blue-900 text-white rounded-lg hover:bg-blue-800">
+            Clear All Fields
+          </button>
+
+          <button
+            id="copyDeckReplicatorResults"
+            type="button"
+            class="py-2.5 px-4 text-sm flex items-center justify-center bg-blue-900 text-white rounded-lg hover:bg-blue-800">
+            Copy Results
+          </button>
+
+          <button
+            id="runDeckReplicator"
+            type="button"
+            class="inline-flex items-center py-2.5 px-4 text-xs font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800">
+            Replicate Decks
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="text-center mt-3 text-sm text-gray-500">
